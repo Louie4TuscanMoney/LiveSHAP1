@@ -1,0 +1,45 @@
+NBA Data Preparation Summary
+============================================================
+
+Total games: 3459
+Total features: 36
+
+Seasons:
+  2022-23: 1229 games
+  2021-22: 1228 games
+  2020-21: 1002 games
+
+Features included:
+  H2_2P%
+  H2_3P%
+  H2_AST
+  H2_BLK
+  H2_DRB
+  H2_FG%
+  H2_FT%
+  H2_ORB
+  H2_PF
+  H2_STL
+  H2_TOV
+  H3_2P%
+  H3_3P%
+  H3_AST
+  H3_BLK
+  H3_DRB
+  H3_FG%
+  H3_FT%
+  H3_ORB
+  H3_PF
+  H3_STL
+  H3_TOV
+  game_2P%
+  game_3P%
+  game_AST
+  game_BLK
+  game_DRB
+  game_FG%
+  game_FT%
+  game_ORB
+  game_PF
+  game_STL
+  game_TOV

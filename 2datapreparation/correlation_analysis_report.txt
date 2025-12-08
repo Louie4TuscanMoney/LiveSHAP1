@@ -1,0 +1,38 @@
+Correlation Analysis Report
+============================================================
+
+Feature Selection Based on Correlation Analysis
+Following Research.md methodology (lines 165-169)
+
+
+GAME Period:
+----------------------------------------
+Found 3 highly correlated pairs (|r| ≥ 0.8):
+  game_FG ↔ game_FG%: r = 0.807
+  game_FT ↔ game_FTA: r = 0.912
+  game_DRB ↔ game_TRB: r = 0.817
+
+H2 Period:
+----------------------------------------
+Found 4 highly correlated pairs (|r| ≥ 0.8):
+  H2_FG ↔ H2_FG%: r = 0.839
+  H2_3P ↔ H2_3P%: r = 0.812
+  H2_FT ↔ H2_FTA: r = 0.917
+  H2_DRB ↔ H2_TRB: r = 0.823
+
+H3 Period:
+----------------------------------------
+Found 4 highly correlated pairs (|r| ≥ 0.8):
+  H3_FG ↔ H3_FG%: r = 0.826
+  H3_3P ↔ H3_3P%: r = 0.805
+  H3_FT ↔ H3_FTA: r = 0.910
+  H3_DRB ↔ H3_TRB: r = 0.819
+
+
+Features Removed: 27
+Reasoning:
+  - FG, FGA removed: Highly correlated with FG% (percentage more accurately reflects team strength)
+  - 2P, 2PA removed: Highly correlated with 2P%
+  - 3P, 3PA removed: Highly correlated with 3P%
+  - FT, FTA removed: Highly correlated with FT%
+  - TRB removed: Redundant (TRB = ORB + DRB), highly correlated with DRB
