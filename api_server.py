@@ -17,15 +17,20 @@ import os
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# Import prediction storage
-from 4liveprediction.prediction_storage import load_predictions, get_predictions_with_outcomes
+# Import prediction storage dynamically (module name starts with digit)
+import importlib.util
+prediction_storage_path = Path('4liveprediction/prediction_storage.py')
+prediction_spec = importlib.util.spec_from_file_location("prediction_storage", prediction_storage_path)
+prediction_storage_module = importlib.util.module_from_spec(prediction_spec)
+prediction_spec.loader.exec_module(prediction_storage_module)
+load_predictions = prediction_storage_module.load_predictions
+get_predictions_with_outcomes = prediction_storage_module.get_predictions_with_outcomes
 
 # Import monitoring function dynamically
-import importlib.util
 monitor_path = Path('4liveprediction/monitor_live_games.py')
-spec = importlib.util.spec_from_file_location("monitor", monitor_path)
-monitor_module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(monitor_module)
+monitor_spec = importlib.util.spec_from_file_location("monitor", monitor_path)
+monitor_module = importlib.util.module_from_spec(monitor_spec)
+monitor_spec.loader.exec_module(monitor_module)
 monitor_main = monitor_module.main
 
 app = Flask(__name__)
