@@ -153,15 +153,22 @@ def check_and_manage_monitoring():
             if status == "Scheduled" and is_game_within_start_window(game, window_minutes=2):
                 if game_id not in active_monitors:
                     start_game_monitoring(game_id, game_info)
-                    # Trigger monitoring start via API (if not already running)
-                    # Use environment variable for API URL or default to localhost
-                    api_url = os.getenv("SHAP_API_URL", "http://localhost:5000")
-                    try:
-                        response = requests.post(f"{api_url}/api/run", timeout=2)
-                        if response.status_code == 200:
+                    # Trigger monitoring start (use internal function if available, else API)
+                    if hasattr(sys.modules.get('__main__'), 'start_monitoring_func'):
+                        # Running in same process - use internal function
+                        start_func = sys.modules['__main__'].start_monitoring_func
+                        if start_func:
+                            start_func()
                             print(f"✅ Monitoring started for upcoming game {game_id}")
-                    except Exception as e:
-                        print(f"⚠️  Could not start monitoring via API: {e}")
+                    else:
+                        # Running separately - use API
+                        api_url = os.getenv("SHAP_API_URL", "http://localhost:5000")
+                        try:
+                            response = requests.post(f"{api_url}/api/run", timeout=2)
+                            if response.status_code == 200:
+                                print(f"✅ Monitoring started for upcoming game {game_id}")
+                        except Exception as e:
+                            print(f"⚠️  Could not start monitoring via API: {e}")
             
             # Check if game has started (ensure monitoring is active)
             elif is_game_started(game):

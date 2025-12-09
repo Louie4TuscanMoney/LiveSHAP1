@@ -342,7 +342,7 @@ def get_stats():
 
 def start_auto_monitor():
     """Start the auto-monitoring system in background."""
-    global auto_monitor_thread, auto_monitor_active
+    global auto_monitor_thread, auto_monitor_active, monitoring_active
     
     if auto_monitor_active:
         return
@@ -354,6 +354,11 @@ def start_auto_monitor():
             import importlib.util
             auto_monitor_spec = importlib.util.spec_from_file_location("auto_monitor", auto_monitor_path)
             auto_monitor_module = importlib.util.module_from_spec(auto_monitor_spec)
+            
+            # Pass the start_monitoring function to auto_monitor
+            auto_monitor_module.start_monitoring_func = lambda: start_monitoring() if not monitoring_active else None
+            auto_monitor_module.monitoring_active_ref = lambda: monitoring_active
+            
             auto_monitor_spec.loader.exec_module(auto_monitor_module)
             
             auto_monitor_active = True
@@ -368,6 +373,8 @@ def start_auto_monitor():
             print("⚠️  auto_monitor.py not found - auto-monitoring disabled")
     except Exception as e:
         print(f"⚠️  Error starting auto-monitor: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == '__main__':
     # Start auto-monitoring in background
