@@ -39,12 +39,18 @@ CORS(app)  # Enable CORS for frontend
 # Global state
 monitoring_thread = None
 monitoring_active = False
+auto_monitor_thread = None
+auto_monitor_active = False
 monitoring_status = {
     'active': False,
     'started_at': None,
     'last_check': None,
     'games_monitored': 0
 }
+
+# Per-game monitoring tracking
+active_game_monitors = {}  # {game_id: {'thread': thread, 'started_at': str}}
+monitoring_lock = threading.Lock()
 
 # Storage paths
 PREDICTIONS_JSON = Path('4liveprediction/predictions/predictions.json')
@@ -77,11 +83,27 @@ def health_check():
 @app.route('/api/status', methods=['GET'])
 def get_status():
     """Get monitoring status."""
+    with monitoring_lock:
+        active_games = len(active_game_monitors)
+        game_list = [
+            {
+                'game_id': game_id,
+                'started_at': info.get('started_at'),
+                'game_info': info.get('game_info', {})
+            }
+            for game_id, info in active_game_monitors.items()
+        ]
+    
     return jsonify({
         'monitoring': {
             'active': monitoring_status['active'],
             'started_at': monitoring_status['started_at'],
             'last_check': monitoring_status['last_check']
+        },
+        'auto_monitor': {
+            'active': auto_monitor_active,
+            'active_games': active_games,
+            'games': game_list
         },
         'timestamp': datetime.now().isoformat()
     })
@@ -318,7 +340,39 @@ def get_stats():
             'message': 'Failed to calculate stats'
         }), 500
 
+def start_auto_monitor():
+    """Start the auto-monitoring system in background."""
+    global auto_monitor_thread, auto_monitor_active
+    
+    if auto_monitor_active:
+        return
+    
+    try:
+        # Import auto_monitor dynamically
+        auto_monitor_path = Path(__file__).parent / 'auto_monitor.py'
+        if auto_monitor_path.exists():
+            import importlib.util
+            auto_monitor_spec = importlib.util.spec_from_file_location("auto_monitor", auto_monitor_path)
+            auto_monitor_module = importlib.util.module_from_spec(auto_monitor_spec)
+            auto_monitor_spec.loader.exec_module(auto_monitor_module)
+            
+            auto_monitor_active = True
+            auto_monitor_thread = threading.Thread(
+                target=auto_monitor_module.auto_monitor_loop,
+                daemon=True,
+                name="AutoMonitor"
+            )
+            auto_monitor_thread.start()
+            print("✅ Auto-monitoring started")
+        else:
+            print("⚠️  auto_monitor.py not found - auto-monitoring disabled")
+    except Exception as e:
+        print(f"⚠️  Error starting auto-monitor: {e}")
+
 if __name__ == '__main__':
+    # Start auto-monitoring in background
+    start_auto_monitor()
+    
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
 
